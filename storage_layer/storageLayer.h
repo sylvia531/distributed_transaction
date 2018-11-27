@@ -21,7 +21,7 @@ void cleanDevice();
 void printDevice();
 void writeRecords(int serverID, int storageID, string val);
 string readRecords(int serverID, int storageID, string objID);
-string readLine(int fd);
+string readLine(int fd, long long offset);
 
 
 

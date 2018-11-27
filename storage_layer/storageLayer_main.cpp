@@ -13,12 +13,23 @@ int main(int argc, char *argv[]){
 	initDevice(numServer, numDevPerServer);
 	printDevice();
 	
+	loadDataToStorage(loadTracePath, numServer);
 	
+	
+	string objID = "user2408371864701034737";
+	int serverID = genObjHash(objID)%numServer;
+	int storageID = 0;
+	cout<<"Read data from serverID: "<<serverID<<" storageID: "<<storageID<<endl;
+	string content = readRecords(serverID, storageID, objID);
+	cout<<content<<endl;
+
+	
+	/*
 	int recordCounter = 0;	
 	FILE *fTrace = fopen((char*)loadTracePath.c_str(), "r");
 	char tmpLine[MAX_LINE_SIZE]; 
 	while(!feof(fTrace)){
-		if(recordCounter<10){
+		// if(recordCounter<10){
 			fgets(tmpLine, MAX_LINE_SIZE, fTrace);
 			if(tmpLine[0] == '"' || tmpLine[0] == '*' || tmpLine[0] == '['){
 				continue;
@@ -32,11 +43,12 @@ int main(int argc, char *argv[]){
 			writeRecords(tmpRecord.serverID, tmpRecord.storageID, content);
 			
 			recordCounter++;
-		}
-		else{
-			break;
-		}
+		// }
+		// else{
+			// break;
+		// }
 	}
+	*/
 	
 	cleanDevice();
 

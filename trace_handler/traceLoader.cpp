@@ -3,12 +3,11 @@
 
 
 map<string, vector<ycsbRecord>> opTable; //key: objID, value: record
+hash<string> obj_hash;
 
 
 void loadRecord(string filename, int numServer){
-	
-	
-	
+		
 	FILE *fTrace = fopen((char*)filename.c_str(), "r");
 	char tmpLine[MAX_LINE_SIZE]; 
 	
@@ -35,8 +34,30 @@ void loadRecord(string filename, int numServer){
 	fclose(fTrace);
 }
 
+void loadDataToStorage(string filename, int numServer){
+	//data load phase, load data into the storage
+	FILE *fTrace = fopen((char*)filename.c_str(), "r");
+	char tmpLine[MAX_LINE_SIZE]; 
+	while(!feof(fTrace)){
+
+		fgets(tmpLine, MAX_LINE_SIZE, fTrace);
+		if(tmpLine[0] == '"' || tmpLine[0] == '*' || tmpLine[0] == '['){
+			continue;
+		}
+		string tmpString(tmpLine);
+		ycsbRecord tmpRecord = parseRecord(tmpString, numServer);
+		string content = tmpRecord.objID+" "+tmpRecord.tableName;
+		for(auto f: tmpRecord.content){
+			content = content+" "+f.first+"="+f.second;
+		}
+		writeRecords(tmpRecord.serverID, tmpRecord.storageID, content);
+		
+
+	}
+}
+
 ycsbRecord parseRecord(string r, int numServer){
-	hash<string> obj_hash;
+	
 	
 	ycsbRecord tmp;
 	int strLen = r.length();
@@ -57,7 +78,7 @@ ycsbRecord parseRecord(string r, int numServer){
 	posEnd = r.find(" ", posStart);
 	string objID = r.substr(posStart, posEnd-posStart);
 	tmp.objID = objID;
-	size_t hashValue = obj_hash(tmp.objID);
+	size_t hashValue = genObjHash(tmp.objID);
 	tmp.storageID = 0;
 	tmp.serverID = hashValue%numServer;
 
@@ -98,6 +119,10 @@ ycsbRecord parseRecord(string r, int numServer){
 		}
 	}
 	return tmp;
+}
+
+size_t genObjHash(string objID){
+	return obj_hash(objID);
 }
 
 void printTable(){

@@ -31,7 +31,9 @@ typedef struct ycsbRecord_t{
 
 
 void loadRecord(string filename, int numServer);
+void loadDataToStorage(string filename, int numServer);
 ycsbRecord parseRecord(string r, int numServer);
+size_t genObjHash(string objID);
 void printTable();
 
 #endif
