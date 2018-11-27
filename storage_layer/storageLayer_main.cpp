@@ -29,7 +29,7 @@ int main(int argc, char *argv[]){
 			for(auto f: tmpRecord.content){
 				content = content+" "+f.first+"="+f.second;
 			}
-			writeRecords(0, 0, content);
+			writeRecords(tmpRecord.serverID, tmpRecord.storageID, content);
 			
 			recordCounter++;
 		}
