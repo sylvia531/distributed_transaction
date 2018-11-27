@@ -30,8 +30,8 @@ typedef struct ycsbRecord_t{
 }ycsbRecord;
 
 
-void loadRecord(string filename);
-ycsbRecord parseRecord(string r);
+void loadRecord(string filename, int numServer);
+ycsbRecord parseRecord(string r, int numServer);
 void printTable();
 
 #endif

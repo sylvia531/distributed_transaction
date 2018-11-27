@@ -3,12 +3,18 @@
 #include "storageLayer.h"
 
 int main(int argc, char *argv[]){
-	initDevice(3, 1);
+	
+	// int numServer = atoi(argv[3]);
+	int numServer = 3;
+	int numDevPerServer = 1;
+	
+	string loadTracePath = argv[1];
+	
+	initDevice(numServer, numDevPerServer);
 	printDevice();
 	
 	
-	int recordCounter = 0;
-	string loadTracePath = argv[1];
+	int recordCounter = 0;	
 	FILE *fTrace = fopen((char*)loadTracePath.c_str(), "r");
 	char tmpLine[MAX_LINE_SIZE]; 
 	while(!feof(fTrace)){
@@ -18,7 +24,7 @@ int main(int argc, char *argv[]){
 				continue;
 			}
 			string tmpString(tmpLine);
-			ycsbRecord tmpRecord = parseRecord(tmpString);
+			ycsbRecord tmpRecord = parseRecord(tmpString, numServer);
 			string content = tmpRecord.objID+" "+tmpRecord.tableName;
 			for(auto f: tmpRecord.content){
 				content = content+" "+f.first+"="+f.second;
