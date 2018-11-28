@@ -13,6 +13,8 @@
 #include <cstdlib>
 #include <ctime>
 #include "../structDef.h"
+#include "../util/util_cpp.h"
+#include "../trace_handler/traceLoader.h"
 
 using namespace std;
 

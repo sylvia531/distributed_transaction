@@ -1,5 +1,3 @@
-#include "../structDef.h"
-#include "../trace_handler/traceLoader.h"
 #include "storageLayer.h"
 
 int main(int argc, char *argv[]){
@@ -17,7 +15,7 @@ int main(int argc, char *argv[]){
 	
 	
 	string objID = "user2408371864701034737";
-	int serverID = genObjHash(objID)%numServer;
+	int serverID = genStrHash(objID)%numServer;
 	int storageID = 0;
 	cout<<"Read data from serverID: "<<serverID<<" storageID: "<<storageID<<endl;
 	string content = readRecords(serverID, storageID, objID);

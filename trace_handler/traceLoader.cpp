@@ -1,5 +1,5 @@
 #include "traceLoader.h"
-#include "../storage_layer/storageLayer.h"
+
 
 
 map<string, vector<ycsbRecord>> opTable; //key: objID, value: record
@@ -78,7 +78,7 @@ ycsbRecord parseRecord(string r, int numServer){
 	posEnd = r.find(" ", posStart);
 	string objID = r.substr(posStart, posEnd-posStart);
 	tmp.objID = objID;
-	size_t hashValue = genObjHash(tmp.objID);
+	size_t hashValue = genStrHash(tmp.objID);
 	tmp.storageID = 0;
 	tmp.serverID = hashValue%numServer;
 
@@ -119,10 +119,6 @@ ycsbRecord parseRecord(string r, int numServer){
 		}
 	}
 	return tmp;
-}
-
-size_t genObjHash(string objID){
-	return obj_hash(objID);
 }
 
 void printTable(){

@@ -1,4 +1,3 @@
-#include "../structDef.h"
 #include "traceLoader.h"
 
 int main(int argc, char *argv[]){
