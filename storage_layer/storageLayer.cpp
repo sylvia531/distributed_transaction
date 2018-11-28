@@ -1,32 +1,48 @@
 #include "storageLayer.h"
 
-map<int, map<int, pair<int, long long>>> storageDevice; //k1: server, k2: device id, v: (file descriptor, last offset) 
-map<string, map<time_t,  long long>> recordTable; //k1: objID, k2: timestamp, v: record offset
-void initDevice(int numServer, int dps){
+/**Storage global variable*/
+clusterStoreMeta clusterStorage;
+
+void initCluster(int numServer, int dps){
 	/**
 	* numServer: number of server in the cluster
 	* dps: storage device per server
-	*/
+	*/	
+	clusterStorage.numServer = numServer;
 	for(int i = 0; i<numServer; i++){
-		map<int, pair<int, long long>> sdDescriptor;
-		for(int j = 0; j<dps; j++){
-			string dname = "./storage/server"+to_string(i)+"_storage"+to_string(j);
-			int fd = open((char*)dname.c_str(), O_RDWR | O_CREAT | O_TRUNC);  
-			if (fd ==-1) {
-				cout<<"Error: Opern storage device error"<<endl;
-				exit(0);
-			}
-			// cout<<fd<<endl;
-			sdDescriptor[j] = make_pair(fd, 0);
-		}
-		storageDevice[i] = sdDescriptor;
+		clusterStorage.server[i];
+		initServer(&clusterStorage.server[i], i, dps);
+		
 	}
 }
 
+void initServer(serverMeta* server, int serverID, int numStorage){
+	server->serverID = serverID;
+	server->numStorage = numStorage;
+	for(int i = 0; i<numStorage; i++){
+		server->storageDevices[i];
+		initDevice(&(server->storageDevices[i]), serverID, i);
+	}
+}
+
+
+void initDevice(StorageDeviceMeta* sd, int serverID, int storageID){
+	sd->serverID = serverID;
+	sd->storageID = storageID;
+	sd->deviceName ="./storage/server"+to_string(serverID)+"_storage"+to_string(storageID);
+	int fd = open((char*)(sd->deviceName).c_str(), O_RDWR | O_CREAT | O_TRUNC);  
+	if (fd ==-1) {
+		cout<<"Error: Opern storage device error"<<endl;
+		exit(0);
+	}
+	sd->sdDescriptor = make_pair(fd, 0);
+}
+
 void cleanDevice(){
-	for(auto sd : storageDevice){
-		for(auto dname : sd.second){
-			int err = close(dname.second.first); 
+	for(auto it1 = clusterStorage.server.begin(); it1!=clusterStorage.server.end(); it1++){
+
+		for(auto it2 = it1->second.storageDevices.begin(); it2 != it1->second.storageDevices.end(); it2++){
+			int err = close(it2->second.sdDescriptor.first); 
 			if (err < 0){
 				cout<<"File close error"<<endl;
 			}
@@ -34,25 +50,29 @@ void cleanDevice(){
 	}
 }
 
+
 void printDevice(){
-	for(auto sd : storageDevice){
-		cout<<"Server: "<<sd.first<<endl;
-		for(auto dname : sd.second){
-			string tmpName = "\t./storage/server"+to_string(sd.first)+"_storage"+to_string(dname.first);
-			cout<<tmpName<<endl;
+	cout<<"Number of servers: "<<clusterStorage.numServer<<endl;
+	for(auto it1 = clusterStorage.server.begin(); it1!=clusterStorage.server.end(); it1++){
+		cout<<"\tNumber of devices: "<<it1->second.numStorage<<endl;
+		
+		for(auto it2 = it1->second.storageDevices.begin(); it2 != it1->second.storageDevices.end(); it2++){
+			cout<<"\t"<<it2->second.deviceName<<endl;
 		}
 	}
 }
 
+
 void writeRecords(int serverID, int storageID, string val){
+	//Append do not update old record, recordTable will handle that
 	
+	//add \n if val do not have one
 	int len = val.length();
 	if(val[len-1] != '\n'){
 		val = val+"\n";
 	}
-	int fd = storageDevice[serverID][storageID].first;
-	long long offset = storageDevice[serverID][storageID].second;
 	
+	//find the objID of the record
 	int posStart = 0;
 	int posEnd = val.find(" ");
 	string objID = val.substr(posStart, posEnd-posStart);
@@ -62,20 +82,25 @@ void writeRecords(int serverID, int storageID, string val){
 		cout<<"ServerID: "<<serverID<<endl;
 		cout<<"storageID: "<<storageID<<endl;
 		cout<<"objID: "<<objID<<endl;
-		cout<<"Write: "<<fd<<endl;
 	}
 	
-	
-	if(objID == "user2408371864701034737"){
-		cout<<"Write: "<<fd<<endl;
-	}
+	//get the offset (tail) of the device
+	int fd = (clusterStorage.server[serverID].storageDevices[storageID].sdDescriptor).first;
+	long long offset = (clusterStorage.server[serverID].storageDevices[storageID].sdDescriptor).second;
 
-	recordTable[objID][ts] = offset;
+	//test whether the record already exist, if not create record lock 
+	if((clusterStorage.server[serverID].storageDevices[storageID].recordTable).find(objID) == (clusterStorage.server[serverID].storageDevices[storageID].recordTable).end()){
+		clusterStorage.server[serverID].storageDevices[storageID].recordMutex[objID];
+		clusterStorage.server[serverID].storageDevices[storageID].recordLocker.emplace(objID, unique_lock<mutex>(clusterStorage.server[serverID].storageDevices[storageID].recordMutex[objID], defer_lock));
+	}
+	
+	clusterStorage.server[serverID].storageDevices[storageID].recordLocker[objID].lock();
+	clusterStorage.server[serverID].storageDevices[storageID].recordTable[objID][ts] = offset;
 	
 	
-	int err = write(fd, (char*)val.c_str(), val.length()); 
+
 	int byte = pwrite (fd, (char*)val.c_str(), val.length(), offset);
-	if(err < 0){
+	if(byte < 0){
 		cout<<"Error: Write record to server"<<serverID<<"_storage"<<storageID<<"  fail"<<endl;
 	}
 	else{
@@ -84,12 +109,16 @@ void writeRecords(int serverID, int storageID, string val){
 		}
 	}
 	
-	storageDevice[serverID][storageID].second = (long long)offset+byte;
+	clusterStorage.server[serverID].storageDevices[storageID].sdDescriptor.second = (long long)offset+byte;
 	
-	if(objID == "user2408371864701034737"){
-		cout<<"After Write laster offset: "<<storageDevice[serverID][storageID].second<<endl;
-		string tmp = readLine(storageDevice[serverID][storageID].first, recordTable[objID][ts]);
-		cout<<tmp<<endl;
+	clusterStorage.server[serverID].storageDevices[storageID].recordLocker[objID].unlock();
+	
+	if(1){
+		if(objID == "user4409142221109489457"){
+			cout<<"After Write laster offset: "<<clusterStorage.server[serverID].storageDevices[storageID].sdDescriptor.second<<endl;
+			string tmp = readLine(clusterStorage.server[serverID].storageDevices[storageID].sdDescriptor.first, clusterStorage.server[serverID].storageDevices[storageID].recordTable[objID][ts]);
+			cout<<tmp<<endl;
+		}
 	}
 	
 	
@@ -98,13 +127,17 @@ void writeRecords(int serverID, int storageID, string val){
 }
 
 string readRecords(int serverID, int storageID, string objID){
-	auto iter = recordTable[objID].end();
+	//single read, singel write
+	clusterStorage.server[serverID].storageDevices[storageID].recordLocker[objID].lock();
+	auto iter = clusterStorage.server[serverID].storageDevices[storageID].recordTable[objID].end();
 	iter--;
-	int fd = storageDevice[serverID][storageID].first;
+	int fd = (clusterStorage.server[serverID].storageDevices[storageID].sdDescriptor).first;
 	long long offset = iter->second;
-	
-	return readLine(fd, offset);
+	string res = readLine(fd, offset);
+	clusterStorage.server[serverID].storageDevices[storageID].recordLocker[objID].unlock();
+	return res;
 }
+
 
 string readLine(int fd, long long offset){
 	char c;
@@ -120,6 +153,3 @@ string readLine(int fd, long long offset){
 	
 	return res;
 }
-
-
-
