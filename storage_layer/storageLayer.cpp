@@ -36,6 +36,7 @@ void initDevice(StorageDeviceMeta* sd, int serverID, int storageID){
 		exit(0);
 	}
 	sd->sdDescriptor = make_pair(fd, 0);
+	sd->offsetLocker = unique_lock<mutex>(sd->offsetMutex, defer_lock); 
 }
 
 void cleanDevice(){
@@ -84,6 +85,11 @@ void writeRecords(int serverID, int storageID, string val){
 		cout<<"objID: "<<objID<<endl;
 	}
 	
+	
+	//Lock offset lock
+	clusterStorage.server[serverID].storageDevices[storageID].offsetLocker.lock();
+	
+	
 	//get the offset (tail) of the device
 	int fd = (clusterStorage.server[serverID].storageDevices[storageID].sdDescriptor).first;
 	long long offset = (clusterStorage.server[serverID].storageDevices[storageID].sdDescriptor).second;
@@ -94,11 +100,13 @@ void writeRecords(int serverID, int storageID, string val){
 		clusterStorage.server[serverID].storageDevices[storageID].recordLocker.emplace(objID, unique_lock<mutex>(clusterStorage.server[serverID].storageDevices[storageID].recordMutex[objID], defer_lock));
 	}
 	
+	//Lock record
 	clusterStorage.server[serverID].storageDevices[storageID].recordLocker[objID].lock();
+	
+	//update the start of this record in record table
 	clusterStorage.server[serverID].storageDevices[storageID].recordTable[objID][ts] = offset;
-	
-	
-
+		
+	//Write the record in the storage 
 	int byte = pwrite (fd, (char*)val.c_str(), val.length(), offset);
 	if(byte < 0){
 		cout<<"Error: Write record to server"<<serverID<<"_storage"<<storageID<<"  fail"<<endl;
@@ -109,9 +117,13 @@ void writeRecords(int serverID, int storageID, string val){
 		}
 	}
 	
+	//update the offset of storage descriptor
 	clusterStorage.server[serverID].storageDevices[storageID].sdDescriptor.second = (long long)offset+byte;
 	
+	//Unlock record
 	clusterStorage.server[serverID].storageDevices[storageID].recordLocker[objID].unlock();
+	//Unlock offset lock
+	clusterStorage.server[serverID].storageDevices[storageID].offsetLocker.unlock();
 	
 	if(1){
 		if(objID == "user4409142221109489457"){
