@@ -11,7 +11,14 @@
 ## Trace Handler
 1. Currently support ycsb load trace and operation trace
 2. Simple hash method is used for decide the target of each object
+	* Available functions:
+		void loadRecord(char* filename, int numServer); //load record to data structure
+		void loadDataToStorage(char* filename, int numServer); //load record to storage files
+		void printTable();
 
 ## Util
 1. C++ util functions
+	* Available functions:
+		size_t genStrHash(char* objID); //generate hash value from string
 2. C util functions
+	

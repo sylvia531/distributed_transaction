@@ -6,9 +6,9 @@ map<string, vector<ycsbRecord>> opTable; //key: objID, value: record
 hash<string> obj_hash;
 
 
-void loadRecord(string filename, int numServer){
+void loadRecord(char* filename, int numServer){
 		
-	FILE *fTrace = fopen((char*)filename.c_str(), "r");
+	FILE *fTrace = fopen(filename, "r");
 	char tmpLine[MAX_LINE_SIZE]; 
 	
 	while(!feof(fTrace)){
@@ -34,9 +34,10 @@ void loadRecord(string filename, int numServer){
 	fclose(fTrace);
 }
 
-void loadDataToStorage(string filename, int numServer){
+
+void loadDataToStorage(char* filename, int numServer){
 	//data load phase, load data into the storage
-	FILE *fTrace = fopen((char*)filename.c_str(), "r");
+	FILE *fTrace = fopen(filename, "r");
 	char tmpLine[MAX_LINE_SIZE]; 
 	while(!feof(fTrace)){
 
@@ -50,11 +51,12 @@ void loadDataToStorage(string filename, int numServer){
 		for(auto f: tmpRecord.content){
 			content = content+" "+f.first+"="+f.second;
 		}
-		writeRecords(tmpRecord.serverID, tmpRecord.storageID, content);
+		writeRecords(tmpRecord.serverID, tmpRecord.storageID, (char*)content.c_str());
 		
 
 	}
 }
+
 
 ycsbRecord parseRecord(string r, int numServer){
 	
@@ -78,7 +80,7 @@ ycsbRecord parseRecord(string r, int numServer){
 	posEnd = r.find(" ", posStart);
 	string objID = r.substr(posStart, posEnd-posStart);
 	tmp.objID = objID;
-	size_t hashValue = genStrHash(tmp.objID);
+	size_t hashValue = genStrHash((char*)(tmp.objID).c_str());
 	tmp.storageID = 0;
 	tmp.serverID = hashValue%numServer;
 

@@ -15,7 +15,7 @@
 #include <thread> 
 #include <mutex> 
 #include "../structDef.h"
-#include "../util/util_cpp.h"
+#include "../util/utilcpp.h"
 #include "../trace_handler/traceLoader.h"
 
 using namespace std;
@@ -48,12 +48,22 @@ typedef struct clusterStoreMeta_t{
 	map<int, serverMeta> server; //k1: server, v: storage deveces
 }clusterStoreMeta;
 
-void initCluster(int numServer, int dps);
+#ifdef __cplusplus
+extern "C" {
+#endif
+	void initCluster(int numServer, int dps);
+	void cleanDevice();
+	void printDevice();
+	void writeRecords(int serverID, int storageID, char* val);
+	// char* readRecords(int serverID, int storageID, char* in_objID);
+	void readRecords(int serverID, int storageID, char* in_objID, char** out_record);
+#ifdef __cplusplus
+};
+#endif
+
+
 void initServer(serverMeta* server, int serverID, int numStorage);
 void initDevice(StorageDeviceMeta* sd, int serverID, int storageID);
-void cleanDevice();
-void printDevice();
-void writeRecords(int serverID, int storageID, string val);
-string readRecords(int serverID, int storageID, string objID);
 string readLine(int fd, long long offset);
+
 #endif

@@ -64,9 +64,9 @@ void printDevice(){
 }
 
 
-void writeRecords(int serverID, int storageID, string val){
+void writeRecords(int serverID, int storageID, char* in_val){
 	//Append do not update old record, recordTable will handle that
-	
+	string val(in_val);
 	//add \n if val do not have one
 	int len = val.length();
 	if(val[len-1] != '\n'){
@@ -138,7 +138,9 @@ void writeRecords(int serverID, int storageID, string val){
 	
 }
 
-string readRecords(int serverID, int storageID, string objID){
+// char* readRecords(int serverID, int storageID, char* in_objID){
+void readRecords(int serverID, int storageID, char* in_objID, char** out_record){
+	string objID(in_objID);
 	//single read, singel write
 	clusterStorage.server[serverID].storageDevices[storageID].recordLocker[objID].lock();
 	auto iter = clusterStorage.server[serverID].storageDevices[storageID].recordTable[objID].end();
@@ -147,7 +149,16 @@ string readRecords(int serverID, int storageID, string objID){
 	long long offset = iter->second;
 	string res = readLine(fd, offset);
 	clusterStorage.server[serverID].storageDevices[storageID].recordLocker[objID].unlock();
-	return res;
+	
+	// char* out_record = (char*)res.c_str();
+	// return out_record;
+	
+	res = res+'\0';
+	int len = res.length();
+	*out_record = (char*)malloc(len*sizeof(char));
+	memcpy(*out_record, (char*)res.c_str(), len);
+	
+
 }
 
 

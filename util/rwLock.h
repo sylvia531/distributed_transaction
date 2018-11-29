@@ -1,5 +1,5 @@
-#ifndef __UTIL_CPP_H__  
-#define __UTIL_CPP_H__ 
+#ifndef __RWLOCK_H__  
+#define __RWLOCK_H__ 
 
 #include <iostream>
 #include <fstream>
@@ -11,10 +11,11 @@
 #include <cmath>
 #include <cfloat>
 #include <cstdlib>
+#include <ctime>
+#include <thread> 
+#include <mutex> 
 #include "../structDef.h"
 
 using namespace std;
-
-size_t genStrHash(string objID);
 
 #endif

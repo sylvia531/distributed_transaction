@@ -1,6 +1,3 @@
-#ifndef __STRUCT_DEF_H__  
-#define __STRUCT_DEF_H__ 
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -13,17 +10,12 @@
 #include <fcntl.h>  
 #include <unistd.h>
 
-/**Predefined Parameters*/
-#define TRUE 1
-#define FALSE 0
-
-#define DEBUG TRUE
-
-#define DEV_PER_SERVER 1
-
-#define MAX_LINE_SIZE 10240
-
-/**Structures*/
-
-
-#endif
+int main(int argc, char *argv[]){
+	
+	char a[1024] = "Hello";
+	size_t hash = genStrHash(a);
+	
+	printf("hash: %u\n", hash);
+	
+	return 0;
+}

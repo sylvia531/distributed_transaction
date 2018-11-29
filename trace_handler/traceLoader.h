@@ -12,7 +12,7 @@
 #include <cfloat>
 #include <cstdlib>
 #include "../structDef.h"
-#include "../util/util_cpp.h"
+#include "../util/utilcpp.h"
 #include "../storage_layer/storageLayer.h"
 
 using namespace std;
@@ -31,10 +31,20 @@ typedef struct ycsbRecord_t{
 	
 }ycsbRecord;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+	void loadRecord(char* filename, int numServer);
+	void loadDataToStorage(char* filename, int numServer);
+	void printTable();
 
-void loadRecord(string filename, int numServer);
-void loadDataToStorage(string filename, int numServer);
+	
+#ifdef __cplusplus
+};
+#endif
+
+
 ycsbRecord parseRecord(string r, int numServer);
-void printTable();
+
 
 #endif
