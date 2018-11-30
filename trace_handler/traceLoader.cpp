@@ -55,6 +55,7 @@ void loadDataToStorage(char* filename, int numServer){
 		
 
 	}
+	fclose(fTrace);
 }
 
 
@@ -121,6 +122,32 @@ ycsbRecord parseRecord(string r, int numServer){
 		}
 	}
 	return tmp;
+}
+
+
+int getRecordServer(char* record, int numServer){
+	string r(record);
+	
+	int strLen = r.length();
+	// cout<<"Length: "<<strLen<<endl;
+	int posStart = 0;
+	int posEnd = r.find(" ");
+	string op = r.substr(0, posEnd-posStart);
+	// cout<<op<<endl;
+		
+	posStart = posEnd+1;
+	posEnd = r.find(" ", posStart);
+	string tableName = r.substr(posStart, posEnd-posStart);
+	// cout<<tableName<<endl;
+		
+	posStart = posEnd+1;
+	posEnd = r.find(" ", posStart);
+	string objID = r.substr(posStart, posEnd-posStart);
+	size_t hashValue = genStrHash((char*)(objID).c_str());
+	int serverID = hashValue%numServer;
+
+	return serverID;
+	
 }
 
 void printTable(){

@@ -36,6 +36,7 @@ extern "C" {
 #endif
 	void loadRecord(char* filename, int numServer);
 	void loadDataToStorage(char* filename, int numServer);
+	int getRecordServer(char* record, int numServer);
 	void printTable();
 
 	
