@@ -16,6 +16,13 @@
 		void loadDataToStorage(char* filename, int numServer); //load record to storage files
 		void printTable();
 
+## Simulator
+1. Function simulator, dispatch store data from a cluster manager to 3 servers and store the data there.
+2. Components:
+	* Cluster Manager
+	* Physical Server
+		
+		
 ## Util
 1. C++ util functions
 	* Available functions:
